@@ -1,2 +1,6 @@
-<manifest>
-</manifest>
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+         package="expo.modules.reactnativemotioncapture">
+
+   <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
+   …
+ </manifest>

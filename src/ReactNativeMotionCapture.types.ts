@@ -1,7 +1,8 @@
-export type ChangeEventPayload = {
-  value: string;
+export type ActivityTransitionEventPayload = {
+  activityType: number;
+  transitionType: number;
 };
 
-export type ReactNativeMotionCaptureViewProps = {
+export type MotionCaptureViewProps = {
   name: string;
 };

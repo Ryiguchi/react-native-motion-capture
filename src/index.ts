@@ -1,26 +1,85 @@
-import { NativeModulesProxy, EventEmitter, Subscription } from 'expo-modules-core';
+import { EventEmitter, Subscription } from 'expo-modules-core';
+import { PermissionsAndroid, Platform } from 'react-native';
 
-// Import the native module. On web, it will be resolved to ReactNativeMotionCapture.web.ts
-// and on native platforms to ReactNativeMotionCapture.ts
-import ReactNativeMotionCaptureModule from './ReactNativeMotionCaptureModule';
-import ReactNativeMotionCaptureView from './ReactNativeMotionCaptureView';
-import { ChangeEventPayload, ReactNativeMotionCaptureViewProps } from './ReactNativeMotionCapture.types';
+import {
+  ActivityTransitionEventPayload,
+  MotionCaptureViewProps,
+} from './ReactNativeMotionCapture.types';
+import MotionCaptureModule from './ReactNativeMotionCaptureModule';
 
-// Get the native constant value.
-export const PI = ReactNativeMotionCaptureModule.PI;
+export enum ActivityPermissionResults {
+  GRANTED = 'granted',
+  DENIED = 'denied',
+}
+
+export const isGooglePlayServicesAvailable =
+  MotionCaptureModule.isGooglePlayServicesAvailable;
+
+export const googlePlayServicesStatus =
+  MotionCaptureModule.googlePlayServicesStatus;
+
+export const getActivityPermissionStatus = (): ActivityPermissionResults => {
+  const value: 0 | 1 = MotionCaptureModule.getActivityPermissionResult();
+  if (value === 0) {
+    return ActivityPermissionResults.GRANTED;
+  }
+
+  return ActivityPermissionResults.DENIED;
+};
+
+export const requestActivityPermissionsAsync =
+  async (): Promise<ActivityPermissionResults> => {
+    if (Platform.OS === 'android') {
+      const permissionStatus: number =
+        MotionCaptureModule.getActivityPermissionResult();
+
+      if (permissionStatus === 0) {
+        return ActivityPermissionResults.GRANTED;
+      }
+
+      try {
+        await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACTIVITY_RECOGNITION
+        );
+
+        const newPermissionStatus: number =
+          MotionCaptureModule.getActivityPermissionResult();
+
+        if (newPermissionStatus === 0) {
+          return ActivityPermissionResults.GRANTED;
+        }
+
+        return ActivityPermissionResults.DENIED;
+      } catch (err) {
+        console.warn(err);
+        return ActivityPermissionResults.DENIED;
+      }
+    }
+
+    return ActivityPermissionResults.DENIED;
+  };
 
 export function hello(): string {
-  return ReactNativeMotionCaptureModule.hello();
+  return MotionCaptureModule.hello();
 }
 
-export async function setValueAsync(value: string) {
-  return await ReactNativeMotionCaptureModule.setValueAsync(value);
+export function startActivityTransitionMonitoring() {
+  return MotionCaptureModule.startActivityTransitionMonitoring();
 }
 
-const emitter = new EventEmitter(ReactNativeMotionCaptureModule ?? NativeModulesProxy.ReactNativeMotionCapture);
-
-export function addChangeListener(listener: (event: ChangeEventPayload) => void): Subscription {
-  return emitter.addListener<ChangeEventPayload>('onChange', listener);
+export function stopActivityTransitionMonitoring() {
+  return MotionCaptureModule.stopActivityTransitionMonitoring();
 }
 
-export { ReactNativeMotionCaptureView, ReactNativeMotionCaptureViewProps, ChangeEventPayload };
+const emitter = new EventEmitter(MotionCaptureModule);
+
+export function addActivityTransitionListener(
+  listener: (event: ActivityTransitionEventPayload) => void
+): Subscription {
+  return emitter.addListener<ActivityTransitionEventPayload>(
+    'onChange',
+    listener
+  );
+}
+
+export { MotionCaptureViewProps, ActivityTransitionEventPayload };
