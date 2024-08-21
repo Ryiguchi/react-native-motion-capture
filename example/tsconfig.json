@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "react-native-motion-capture": ["../src/index"],
+      "react-native-motion-capture/*": ["../src/*"]
+    }
+  }
+}
